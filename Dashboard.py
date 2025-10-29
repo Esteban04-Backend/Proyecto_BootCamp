@@ -29,7 +29,8 @@ with columnas[3]:
 #preguntar
 data_filtered=df.loc[(df['Genero'].isin(demografia)) & (df['Smoking'].isin(habitos)) & (df['Family_History'].isin(historial_medico)) & (df['Tipo_de_Cancer'].isin(tipoc))]
 '''
-# ------ VISUALIZACIONES ------
+# graficos
+
 st.subheader("Visualizaciones basadas en los filtros")
 
 # Comprobar si el DataFrame filtrado no está vacío
@@ -37,7 +38,6 @@ if data_filtered.empty:
     st.warning("No hay datos que coincidan con los filtros seleccionados.")
 else:
     # Gráfico 1: Torta de Edad y Tipo de Cáncer (DISTRIBUCIÓN DEL TIPO DE CÁNCER)
-    # Se recomienda mostrar la distribución del tipo de cáncer total, ya que la torta no es adecuada para dos variables.
     conteo_tipo_cancer = data_filtered.groupby('Tipo_de_Cancer').size().reset_index(name='Casos')
     fig1 = px.pie(conteo_tipo_cancer, values='Casos', names='Tipo_de_Cancer',
                   title='Distribución de Tipos de Cáncer')
