@@ -30,5 +30,5 @@ columnas_procentaje=['Tabaquismo(%)','Consumo_Alcohol(%)','Obesidad(%)','Dieta_C
 df[columnas_procentaje]=df[columnas_procentaje]*10
 print('\nBase de datos Tratada')
 print(df.head())
-#df.to_excel('Cancer.xlsx', index=False)
+df.to_excel('Cancer.xlsx', index=False)
 print('Se creo el archivo Excel Correctamente')
