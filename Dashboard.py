@@ -40,15 +40,16 @@ print('\nBase de datos Tratada')
 print(df.head())
 
 #Desarrollar y/o escribir los filtros
-columnas=st.columns(4) #Creo 3 columnas que funcionan como contenedor de los filtros
-with columnas[3]:
-    demografia=st.multiselect('Selecciones los aspectos demograficos a tener en cuenta:', options=df['Genero'].unique().tolist(), default=df['Genero'].unique().tolist())
-with columnas[1]:
-    habitos=st.multiselect('Seleccione los habitos y Condiciones Ambientales a tener en cuenta:', options=df['Tabaquismo(%)'].unique().tolist(), default=df['Tabaquismo(%)'].unique().tolist())
-with columnas[2]:
-    historial_medico=st.multiselect('Seleccione el historial medico a tener en cuenta:', options=df['Antecedentes_Familiares'].unique().tolist(), default=df['Antecedentes_Familiares'].unique().tolist())
+columnas=st.columns(4) #Creo 4 columnas que funcionan como contenedor de los filtros
 with columnas[0]:
     tipoc=st.multiselect('Seleccione el tipo de cancer:',options=df['Tipo_de_Cancer'].unique().tolist(), max_selections=1)
+with columnas[1]:
+    demografia=st.multiselect('Selecciones los aspectos demograficos a tener en cuenta:', options=df['Genero'].unique().tolist(), default=df['Genero'].unique().tolist())
+with columnas[2]:
+    habitos=st.multiselect('Seleccione los habitos y Condiciones Ambientales a tener en cuenta:', options=df['Tabaquismo(%)'].unique().tolist(), default=df['Tabaquismo(%)'].unique().tolist())
+with columnas[3]:
+    historial_medico=st.multiselect('Seleccione el historial medico a tener en cuenta:', options=df['Antecedentes_Familiares'].unique().tolist(), default=df['Antecedentes_Familiares'].unique().tolist())
+
 
 #preguntar
 data_filtered=df.loc[(df['Genero'].isin(demografia)) & (df['Tabaquismo(%)'].isin(habitos)) & (df['Antecedentes_Familiares'].isin(historial_medico)) & (df['Tipo_de_Cancer'].isin(tipoc))]
@@ -62,8 +63,8 @@ if data_filtered.empty:
     st.warning("No hay datos que coincidan con los filtros seleccionados.")
 else:
     # Gráfico 1: Torta de Edad y Tipo de Cáncer (DISTRIBUCIÓN DEL TIPO DE CÁNCER)
-    conteo_tipo_cancer = data_filtered.groupby('Tipo_de_Cancer').size().reset_index(name='Casos')
-    fig1 = px.pie(conteo_tipo_cancer, values='Casos', names='Tipo_de_Cancer',
+    conteo_tipo_cancer = data_filtered.groupby('Genero').size().reset_index(name='Casos')
+    fig1 = px.pie(conteo_tipo_cancer, values='Casos', names='Genero',
                   title='Distribución de Tipos de Cáncer')
     st.plotly_chart(fig1, use_container_width=True)
 
