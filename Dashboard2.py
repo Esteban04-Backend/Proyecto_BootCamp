@@ -143,48 +143,48 @@ df_seleccion = df_seleccion[df_seleccion['Infeccion_H_Pylori'].isin(infecHpylori
 # --- Inicio de la implementación de Visualizaciones ---
 
 # Manejo de dataframe vacío si no hay datos tras los filtros
-if df_seleccion.empty:
-    st.warning("No hay datos que coincidan con los filtros seleccionados.")
-    st.stop()
+if df_seleccion.empty: #para verificar si el df esta vacio se usa el .empty 
+    st.warning("No hay datos que coincidan con los filtros seleccionados.") # muestra un aviso de advertencia (.warning)
+    st.stop() #lo que hace es detener la ejecucion del resto del script de python para que no se generen errores 
 
-# 1. Vista Macro/General de los Datos
+# 1. Vista General de los Datos de la población
 
-st.markdown('### Análisis General de la Población')
+st.markdown('## _Análisis General de la Población_') ##markdown insertar texto (##=susbtitulo, _texto_=cursiva)
 
 # Calcular métricas clave para las tarjetas
-total_pacientes = len(df_seleccion)
-promedio_edad = round(df_seleccion['Edad'].mean(), 1)
-genero_mas_comun = df_seleccion['Genero'].mode()[0] if not df_seleccion['Genero'].empty else 'N/A'
+total_pacientes = len(df_seleccion) #cuenta el total de pacientes en el df seleccion (el df que se usa para los filtros)
+promedio_edad = round(df_seleccion['Edad'].mean(), 0) #.mean se usa para calcular el promedio de la columna edad, y se redondea con el round a 1 decimal
+genero_mas_comun = df_seleccion['Genero'].mode()[0] if not df_seleccion['Genero'].empty else 'N/A' #.mode se usa para encontrar los valores que aparecen con mas frecuencia osea es la moda de la columna seleccionada el 0 me devuelve solo el primer valos de la moda ( si hay 2 modas solo me devuelve el primero)
+#Calcula el género más común y guárdalo. Pero si no hay datos para calcularlo, simplemente escribe 'N/A' para evitar un error en mi programa.
 
-# Mostrar métricas usando streamlit_shadcn_ui cards
-col_metric1, col_metric2, col_metric3 = st.columns(3)
-
-with col_metric1:
-    sc.card(title="Total Pacientes", content=f"{total_pacientes}", description="Registros filtrados", key="card1")
+# Mostrar métricas usando streamlit metric
+col_metric1, col_metric2, col_metric3 = st.columns(3)#. columns me crea 3 sepraciones horizontales tipo columnas
+with col_metric1: #todo dentro de with se debe de colocar dentre de la columna nombrada a continuación
+    st.metric(label="Total Pacientes", value=f"{total_pacientes}", delta="Registros filtrados") #.metric me muestra las columnas con los datos filtrados de manera independiente. 
 with col_metric2:
-    sc.card(title="Edad Promedio", content=f"{promedio_edad} años", description="Media de edad", key="card2")
+    st.metric(label="Edad Promedio", value=f"{promedio_edad} años", delta="Media de edad")
 with col_metric3:
-    sc.card(title="Género Más Común", content=f"{genero_mas_comun}", description="Moda del género", key="card3")
+    st.metric(label="Género Más Común", value=f"{genero_mas_comun}", delta="Moda del género")
 
-st.markdown('##') # Espaciado
+st.markdown('##') # Espacios entre el 1 y el siguiente subtitulo
 
-col_macro1, col_macro2 = st.columns([2, 1])
+col_macro1, col_macro2 = st.columns([2, 1]) #el 2,1 se hace para tener en cuenta la relacion de cada uno de las columnas osea el ancho
 
 with col_macro1:
-    st.subheader('Distribución de Tipos de Cáncer')
-    # Gráfico de Rectángulos (Treemap) para visualizar proporciones
+    st.subheader('**_Distribución de Tipos de Cáncer_**')
+    # Gráfico de Rectángulos (Treemap) para visualizar proporciones de cada uno de los tipos de cancer
     fig_treemap = px.treemap(
         df_seleccion,
-        path=['Tipo_de_Cancer', 'Genero'],
+        path=['Tipo_de_Cancer','Genero'],
         title='Proporción de Tipos de Cáncer y Género',
-        color='Tipo_de_Cancer'
-    )
-    fig_treemap.update_traces(textinfo="label+percent parent")
-    st.plotly_chart(fig_treemap, use_container_width=True)
+        color='Tipo_de_Cancer', color_discrete_sequence=px.colors.qualitative.Pastel)
+    fig_treemap.update_traces(textinfo="label+percent parent")#el textinfo lo que hace e que me muestra como la etiqueta (masculino, femenino) 
+    #y el percent muestra el porcentaje en relacion a esa parte de la etiqueta que cumple con el tipo de cancer
+    st.plotly_chart(fig_treemap, use_container_width=True)#fig:lo usamos para que lo grafique en el navegador y el use es para ajustar automaticamente el ancho
 
 with col_macro2:
-    st.subheader('Distribución por Género')
-    # Gráfico Circular para mostrar la proporción de género
+    st.subheader('_Distribución por Género_')
+    # Gráfico Circular y / o torta para mostrar la proporción de género
     fig_pie_gender = px.pie(
         df_seleccion,
         names='Genero',
