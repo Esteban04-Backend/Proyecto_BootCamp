@@ -181,16 +181,16 @@ with col_macro1:
     fig_treemap.update_traces(textinfo="label+percent parent")#el textinfo lo que hace e que me muestra como la etiqueta (masculino, femenino) 
     #y el percent muestra el porcentaje en relacion a esa parte de la etiqueta que cumple con el tipo de cancer
     st.plotly_chart(fig_treemap, use_container_width=True)#fig:lo usamos para que lo grafique en el navegador y el use es para ajustar automaticamente el ancho
-
+color_genero={'Femenino':'#FF00FF','Masculino':'#000080'}
 with col_macro2:
-    st.subheader('_Distribución por Género_')
+    st.subheader('**_Distribución por Género_**')
     # Gráfico Circular y / o torta para mostrar la proporción de género
     fig_pie_gender = px.pie(
         df_seleccion,
         names='Genero',
         title='Distribución de Pacientes por Género',
-        hole=0.3 # Gráfico de dona
-    )
+        hole=0.3, # Circulo interior del procentaje
+        color='Genero',color_discrete_map=color_genero)
     st.plotly_chart(fig_pie_gender, use_container_width=True)
 
 
@@ -202,37 +202,35 @@ st.markdown('### Análisis Demográfico y Factores Genéticos/Médicos')
 col_intermedia1, col_intermedia2 = st.columns(2)
 
 with col_intermedia1:
-    st.subheader('Histograma de Edad por Género')
+    st.subheader('Distribución de Edad Agrupada por Género')
     # Histograma agrupado para la edad
-    fig_hist_age = px.histogram(
+    histo_edad = px.histogram(
         df_seleccion,
         x='Edad',
-        color='Genero',
-        marginal="box", # Añade un box plot marginal para mejor análisis
+        color='Genero',color_discrete_map=color_genero,
         nbins=20,
-        title='Distribución de Edad Agrupada por Género'
-    )
-    st.plotly_chart(fig_hist_age, use_container_width=True)
-
+        barmode='overlay', 
+        opacity=0.6,
+        labels={'count':'Cantidad de Personas'})
+    histo_edad.update_xaxes(dtick=5)
+    histo_edad.update_traces(marker_line_width=0.1, marker_line_color="black")
+    histo_edad.update_yaxes(title_text='Cantidad de Personas')
+    st.plotly_chart(histo_edad, use_container_width=True)
+color_negypos={'Negativo':'#007BFF','Positivo':'#DC3545'}
 with col_intermedia2:
-    st.subheader('Frecuencia de Factores Genéticos/Médicos')
+    st.subheader('Comparación de Indicadores Genéticos y Médicos')
     # Gráfico de barras para factores categóricos (ejemplo con Antecedentes)
-    # Se puede expandir para incluir Mutacion_BRCA e Infeccion_H_Pylori
-    df_genetics = df_seleccion.melt(value_vars=['Antecedentes_Familiares', 'Mutacion_BRCA', 'Infeccion_H_Pylori'],
+    df_geneticos = df_seleccion.melt(value_vars=['Antecedentes_Familiares', 'Mutacion_BRCA', 'Infeccion_H_Pylori'],
                                     var_name='Factor', value_name='Estado')
-    fig_bar_genetics = px.histogram(
-        df_genetics,
+    bar_geneticos = px.histogram(
+        df_geneticos,
         x='Factor',
-        color='Estado',
-        barmode='group',
-        title='Comparación de Indicadores Genéticos y Médicos'
-    )
-    st.plotly_chart(fig_bar_genetics, use_container_width=True)
-
+        color='Estado',color_discrete_map=color_negypos,
+        barmode='group')
+    bar_geneticos.u
+    st.plotly_chart(bar_geneticos, use_container_width=True)
 
 # 3. Vista Micro/Detalle: Análisis de Hábitos y Factores Cuantitativos
-
-# --- Sección 3. Análisis Detallado (Micro): Hábitos y Factores Cuantitativos ---
 
 st.header("Análisis Detallado (Micro): Hábitos y Factores Cuantitativos")
 
@@ -311,11 +309,7 @@ with col_micro2:
     
     # Preparamos una copia limpia del dataframe SOLO para este gráfico para asegurar que OLS funcione
     df_scatter_clean = df_seleccion.dropna(subset=['Edad', factor_detalle_micro, 'Genero'])
-    
-# Verificamos si hay suficientes datos para la línea de tendencia después de limpiar
-    with col_micro2:
-        st.markdown(f'##### Relación entre {factor_detalle_micro} y Edad (Dispersión)')
-    
+
     # ... código de limpieza de datos ...
 
     fig_scatter = px.scatter(
