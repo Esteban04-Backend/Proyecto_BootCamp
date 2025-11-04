@@ -217,19 +217,35 @@ with col_intermedia1:
     histo_edad.update_traces(marker_line_width=0.1, marker_line_color="black")
     histo_edad.update_yaxes(title_text='Cantidad de Personas')
     st.plotly_chart(histo_edad, use_container_width=True)
+
 color_negypos={'Negativo':'#007BFF','Positivo':'#DC3545'}
 with col_intermedia2:
-    st.subheader('Comparación de Indicadores Genéticos y Médicos')
+    st.subheader('Incidencia Individual de Indicadores Genéticos y Médicos')
     # Gráfico de barras para factores categóricos (ejemplo con Antecedentes)
     df_geneticos = df_seleccion.melt(value_vars=['Antecedentes_Familiares', 'Mutacion_BRCA', 'Infeccion_H_Pylori'],
-                                    var_name='Factor', value_name='Estado')
+                                    var_name='Factor', value_name='Estado') #.melt me hace una agrupacion para despues contarlos y graficarlos
     bar_geneticos = px.histogram(
         df_geneticos,
         x='Factor',
         color='Estado',color_discrete_map=color_negypos,
         barmode='group')
-    bar_geneticos.u
+    bar_geneticos.update_traces(marker_line_width=1, marker_line_color="black")
+    bar_geneticos.update_yaxes(title_text='Cantidad de Personas')
     st.plotly_chart(bar_geneticos, use_container_width=True)
+
+
+st.markdown('### Análisis de Coexistencia de Indicadores Genéticos y Médicos Claves')
+
+#Agrupar por las 3 columnas para contar la frecuencia exacta de cada combinación
+df_conteo_combinado = df_seleccion.groupby([
+    'Antecedentes_Familiares', 
+    'Mutacion_BRCA', 
+    'Infeccion_H_Pylori'
+]).size().reset_index(name='Cantidad de Pacientes')
+
+#Mostrar la tabla en Streamlit, ocultando el índice
+st.dataframe(df_conteo_combinado,use_container_width=True, hide_index=True) # <-- Esto oculta la primera columna numérica (el índice))
+
 
 # 3. Vista Micro/Detalle: Análisis de Hábitos y Factores Cuantitativos
 
@@ -237,7 +253,7 @@ st.header("Análisis Detallado (Micro): Hábitos y Factores Cuantitativos")
 
 # Definición de las columnas porcentuales (asegúrate de que esta lista esté definida en tu código principal)
 columnas_procentaje = ['Tabaquismo(%)','Consumo_Alcohol(%)','Obesidad(%)','Dieta_Carnes_Rojas(%)','Dieta_Salada_Procesada(%)','Consumo_Frutas_Verduras(%)',
-                   'Actividad_Fisica(%)','Contaminacion_Atmosferica(%)','Riesgos_Ocupacionales(%)','Ingesta_Calcio(%)','Nivel_Actividad_Fisica(%)']
+                   'Contaminacion_Atmosferica(%)','Riesgos_Ocupacionales(%)','Ingesta_Calcio(%)','Nivel_Actividad_Fisica(%)']
 
 # 3a. Vista General de Hábitos (Macro de los Micro)
 st.subheader("Nivel Promedio de Exposición a Factores de Riesgo (Gráfico de Líneas/Puntos)")
