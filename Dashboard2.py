@@ -4,7 +4,8 @@ import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit_shadcn_ui as sc
-from local_components import card_container
+from local_components import card_container # ??
+
 #Configuracion del Dashboard 
 st.set_page_config(layout="wide", page_title='Cancer', page_icon=':bar_chart:')
 st.title('Relación del Cancer')
@@ -15,7 +16,7 @@ df=pd.read_csv('data/cancer-risk-factors.csv')
 #Se eliminan las columnas que no se van a usar para el dashboard
 colum_eliminar=['Patient_ID','Overall_Risk_Score','Risk_Level']
 df.drop(colum_eliminar, axis=1, inplace=True)
-#Se renombra cada una de las columnas a Esapañol
+#Se renombra cada una de las columnas a Español
 df.rename(columns={'Cancer_Type':'Tipo_de_Cancer', 'Age':'Edad','Gender':'Genero','Smoking':'Tabaquismo(%)','Alcohol_Use':'Consumo_Alcohol(%)',
                    'Obesity':'Obesidad(%)','Family_History':'Antecedentes_Familiares','Diet_Red_Meat':'Dieta_Carnes_Rojas(%)',
                    'Diet_Salted_Processed':'Dieta_Salada_Procesada(%)','Fruit_Veg_Intake':'Consumo_Frutas_Verduras(%)',
