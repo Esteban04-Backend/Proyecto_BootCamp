@@ -171,19 +171,21 @@ st.markdown('##') # Espacios entre el 1 y el siguiente subtitulo
 
 col_macro1, col_macro2 = st.columns([2, 1]) #el 2,1 se hace para tener en cuenta la relacion de cada uno de las columnas osea el ancho
 
-with col_macro1:
-    st.subheader('**_Distribución de Tipos de Cáncer_**')
+
+st.subheader('**_Distribución de Tipos de Cáncer_**')
     # Gráfico de Rectángulos (Treemap) para visualizar proporciones de cada uno de los tipos de cancer
-    fig_treemap = px.treemap(
-        df_seleccion,
-        path=['Tipo_de_Cancer','Genero'],
-        title='Proporción de Tipos de Cáncer y Género',
-        color='Tipo_de_Cancer', color_discrete_sequence=px.colors.qualitative.Pastel)
-    fig_treemap.update_traces(textinfo="label+percent parent")#el textinfo lo que hace e que me muestra como la etiqueta (masculino, femenino) 
-    #y el percent muestra el porcentaje en relacion a esa parte de la etiqueta que cumple con el tipo de cancer
-    st.plotly_chart(fig_treemap, use_container_width=True)#fig:lo usamos para que lo grafique en el navegador y el use es para ajustar automaticamente el ancho
+fig_treemap = px.treemap(
+    df_seleccion,
+    path=['Tipo_de_Cancer','Genero'],
+    title='Proporción de Tipos de Cáncer y Género',
+    color='Tipo_de_Cancer', color_discrete_sequence=px.colors.qualitative.Pastel)
+fig_treemap.update_traces(textinfo="label+percent parent")#el textinfo lo que hace e que me muestra como la etiqueta (masculino, femenino) 
+#y el percent muestra el porcentaje en relacion a esa parte de la etiqueta que cumple con el tipo de cancer
+st.plotly_chart(fig_treemap, use_container_width=True)#fig:lo usamos para que lo grafique en el navegador y el use es para ajustar automaticamente el ancho
+col_macro1, col_macro2 = st.columns(2) #el 2,1 se hace para tener en cuenta la relacion de cada uno de las columnas osea el ancho
 color_genero={'Femenino':'#FF00FF','Masculino':'#007BFF'}
-with col_macro2:
+
+with col_macro1:
     st.subheader('**_Distribución por Género_**')
     # Gráfico Circular y / o torta para mostrar la proporción de género
     fig_pie_gender = px.pie(
@@ -194,15 +196,7 @@ with col_macro2:
         color='Genero',color_discrete_map=color_genero)
     st.plotly_chart(fig_pie_gender, use_container_width=True)
 
-
-# 2. Vista Intermedia: Relaciones Demográficas y Genéticas
-
-st.markdown('---')
-st.markdown('### Análisis Demográfico y Factores Genéticos/Médicos')
-
-col_intermedia1, col_intermedia2 = st.columns([1.5,1.5])
-
-with col_intermedia1:
+with col_macro2:
     st.subheader('Distribución de Edad Agrupada por Género')
     # Histograma agrupado para la edad
     histo_edad = px.histogram(
@@ -218,9 +212,15 @@ with col_intermedia1:
     histo_edad.update_traces(marker_line_width=0.1, marker_line_color="black")
     histo_edad.update_yaxes(title_text='Cantidad de Personas')
     st.plotly_chart(histo_edad, use_container_width=True)
+# 2. Vista Intermedia: Relaciones Demográficas y Genéticas
+
+st.markdown('---')
+st.markdown('### Análisis Demográfico y Factores Genéticos/Médicos')
+
+col_intermedia1, col_intermedia2 = st.columns([1,2])
 
 color_negypos={'Negativo':'#007BFF','Positivo':'#DC3545'}
-with col_intermedia2:
+with col_intermedia1:
     st.subheader('Incidencia Individual de Indicadores Genéticos y Médicos')
     # Gráfico de barras para factores categóricos (ejemplo con Antecedentes)
     df_geneticos = df_seleccion.melt(value_vars=['Antecedentes_Familiares', 'Mutacion_BRCA', 'Infeccion_H_Pylori'],
@@ -237,22 +237,20 @@ with col_intermedia2:
 
 
 st.markdown('### Análisis de Coexistencia de Indicadores Genéticos y Médicos Claves')
+with col_intermedia2:
+    #Agrupar por las 3 columnas para contar la frecuencia exacta de cada combinación
+    st.subheader('Análisis Detallado (Micro): Hábitos y Factores Cuantitativos')
+    st.markdown('##')
+    df_conteo_combinado = df_seleccion.groupby([
+        'Antecedentes_Familiares', 
+        'Mutacion_BRCA', 
+        'Infeccion_H_Pylori'
+    ]).size().reset_index(name='Cantidad de Pacientes')
 
-#Agrupar por las 3 columnas para contar la frecuencia exacta de cada combinación
-df_conteo_combinado = df_seleccion.groupby([
-    'Antecedentes_Familiares', 
-    'Mutacion_BRCA', 
-    'Infeccion_H_Pylori'
-]).size().reset_index(name='Cantidad de Pacientes')
-
-#Mostrar la tabla en Streamlit, ocultando el índice
-st.dataframe(df_conteo_combinado,use_container_width=True, hide_index=True) # <-- Esto oculta la primera columna numérica (el índice))
-
+    #Mostrar la tabla en Streamlit, ocultando el índice
+    st.dataframe(df_conteo_combinado,use_container_width=True, hide_index=True) # <-- Esto oculta la primera columna numérica (el índice))
 
 # 3. Vista Micro/Detalle: Análisis de Hábitos y Factores Cuantitativos
-
-st.header("Análisis Detallado (Micro): Hábitos y Factores Cuantitativos")
-
 # Definición de las columnas porcentuales (asegúrate de que esta lista esté definida en tu código principal)
 columnas_procentaje = ['Tabaquismo(%)','Consumo_Alcohol(%)','Obesidad(%)','Dieta_Carnes_Rojas(%)','Dieta_Salada_Procesada(%)','Consumo_Frutas_Verduras(%)',
                    'Contaminacion_Atmosferica(%)','Riesgos_Ocupacionales(%)','Ingesta_Calcio(%)','Nivel_Actividad_Fisica(%)']
@@ -300,7 +298,7 @@ with col_micro1:
                            color='Genero',color_discrete_map=color_genero,
                            labels={factor_detalle_micro:f'{factor_detalle_micro}', 
                                    'count':'Cantidad de Personas'},
-                           barmode='group',
+                           barmode='overlay',
                            text_auto=True)
     fig_hab.update_traces(marker_line_width=1, marker_line_color="black")
     fig_hab.update_layout(legend_title_text='Género')
