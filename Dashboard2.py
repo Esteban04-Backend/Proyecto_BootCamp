@@ -182,7 +182,7 @@ with col_macro1:
     fig_treemap.update_traces(textinfo="label+percent parent")#el textinfo lo que hace e que me muestra como la etiqueta (masculino, femenino) 
     #y el percent muestra el porcentaje en relacion a esa parte de la etiqueta que cumple con el tipo de cancer
     st.plotly_chart(fig_treemap, use_container_width=True)#fig:lo usamos para que lo grafique en el navegador y el use es para ajustar automaticamente el ancho
-color_genero={'Femenino':'#FF00FF','Masculino':'#000080'}
+color_genero={'Femenino':'#FF00FF','Masculino':'#007BFF'}
 with col_macro2:
     st.subheader('**_Distribución por Género_**')
     # Gráfico Circular y / o torta para mostrar la proporción de género
@@ -200,7 +200,7 @@ with col_macro2:
 st.markdown('---')
 st.markdown('### Análisis Demográfico y Factores Genéticos/Médicos')
 
-col_intermedia1, col_intermedia2 = st.columns(2)
+col_intermedia1, col_intermedia2 = st.columns([1.5,1.5])
 
 with col_intermedia1:
     st.subheader('Distribución de Edad Agrupada por Género')
@@ -210,8 +210,9 @@ with col_intermedia1:
         x='Edad',
         color='Genero',color_discrete_map=color_genero,
         nbins=20,
-        barmode='overlay', 
-        opacity=0.6,
+        barmode='group', 
+        #opacity=0.6,
+        #text_auto=True,
         labels={'count':'Cantidad de Personas'})
     histo_edad.update_xaxes(dtick=5)
     histo_edad.update_traces(marker_line_width=0.1, marker_line_color="black")
@@ -228,6 +229,7 @@ with col_intermedia2:
         df_geneticos,
         x='Factor',
         color='Estado',color_discrete_map=color_negypos,
+        text_auto=True,
         barmode='group')
     bar_geneticos.update_traces(marker_line_width=1, marker_line_color="black")
     bar_geneticos.update_yaxes(title_text='Cantidad de Personas')
@@ -273,52 +275,39 @@ fig_avg_factors = px.line(
     markers=True
 )
 fig_avg_factors.update_traces(line=dict(color='gray', width=1)) 
-fig_avg_factors.update_traces(marker=dict(size=12, color='blue'))
+fig_avg_factors.update_traces(marker=dict(size=12, color='Red'))
 fig_avg_factors.update_layout(xaxis_tickangle=-45, yaxis_title="Nivel Porcentual Promedio (%)")
 st.plotly_chart(fig_avg_factors, use_container_width=True)
 
 st.markdown('---')
 
-# 3b. Vista Detallada de Hábitos (Micro de los Micro)
+#Vista Detallada de los Hábitos
 
 st.subheader("Análisis de Dispersión y Distribución Detallado")
 
 # Dropdown para seleccionar qué factor de riesgo analizar con detalle
-factor_detalle_micro = st.selectbox(
+factor_detalle_micro = st.selectbox( #selectbox me ayuda a crear un menu desplegable en la pagina web
     'Seleccione el factor de riesgo a analizar detalladamente su dispersión:',
-    options=columnas_procentaje
-)
+    options=columnas_procentaje) #Limita al usuario que opciones puede elegir
 
-col_micro1, col_micro2 = st.columns(2)
+col_micro1, col_micro2 = st.columns([2,1])
 
 with col_micro1:
-    st.markdown(f'##### Distribución de "{factor_detalle_micro}" (Polígono de Frecuencias Manual)')
+    st.markdown(f'##### Distribución de Pacientes por genero para "{factor_detalle_micro}"')
     
-    fig_poly = go.Figure()
+    fig_hab = px.histogram(df_seleccion,
+                           x=factor_detalle_micro,
+                           color='Genero',color_discrete_map=color_genero,
+                           labels={factor_detalle_micro:f'{factor_detalle_micro}', 
+                                   'count':'Cantidad de Personas'},
+                           barmode='group',
+                           text_auto=True)
+    fig_hab.update_traces(marker_line_width=1, marker_line_color="black")
+    fig_hab.update_layout(legend_title_text='Género')
+    fig_hab.update_yaxes(title_text='Cantidad de Personas')
+    fig_hab.update_xaxes(dtick=10)
     
-    for genero_val in df_seleccion['Genero'].unique():
-        df_sub = df_seleccion[df_seleccion['Genero'] == genero_val].dropna(subset=[factor_detalle_micro, 'Edad'])
-        if not df_sub.empty:
-            hist_data, edges = np.histogram(df_sub[factor_detalle_micro], bins=20, density=True)
-            centers = [(edges[i] + edges[i+1]) / 2 for i in range(len(edges) - 1)]
-            
-            fig_poly.add_trace(
-                go.Scatter(
-                    x=centers, 
-                    y=hist_data, 
-                    mode='lines+markers', 
-                    name=f'{genero_val}',
-                    line=dict(width=2.5, shape='spline'),
-                    marker=dict(size=5)
-                )
-            )
-        
-    fig_poly.update_layout(
-        title=f'Polígono de Frecuencias para {factor_detalle_micro} por Género',
-        xaxis_title=factor_detalle_micro,
-        yaxis_title="Densidad de Frecuencia"
-    )
-    st.plotly_chart(fig_poly, use_container_width=True)
+    st.plotly_chart(fig_hab, use_container_width=True)
 
 
 with col_micro2:
