@@ -65,11 +65,11 @@ with st.sidebar:
 
     st.markdown('---')
 #filtro para los habitos y condiciones ambientales de las personas
-    st.subheader('Estilos de Vida y Aspectos Ambientales')
-    taba_min, taba_max=st.slider('Porcentaje de Exposicion al Tabaco:',
-                                 min_value=int(df['Tabaquismo(%)'].min()),
-                                 max_value=int(df['Tabaquismo(%)'].max()),
-                                 value=(int(df['Tabaquismo(%)'].min()), int(df['Tabaquismo(%)'].max())))
+    st.subheader('Estilos de Vida y Aspectos Ambientales')#el sub.header me ayuda a crear un titulo de la seccion 
+    taba_min, taba_max=st.slider('Porcentaje de Exposicion al Tabaco:', #se hace una barra slider ya continuación va el titulo del slider que nos permite seleccionar un rango de valores
+                                 min_value=int(df['Tabaquismo(%)'].min()), #establecemos el valor minimo del slider  y lo convertimos a entero
+                                 max_value=int(df['Tabaquismo(%)'].max()), #establecemos el valor maximo del slider y lo convertimos a entero
+                                 value=(int(df['Tabaquismo(%)'].min()), int(df['Tabaquismo(%)'].max()))) #creamos una variable que almacena el valor minimo y maximo de la columna selecciona y los trae 
     alcoh_min, alcoh_max=st.slider('Porcentaje de Consumo de Alcohol:',
                                  min_value=int(df['Consumo_Alcohol(%)'].min()),
                                  max_value=int(df['Consumo_Alcohol(%)'].max()),
@@ -106,23 +106,27 @@ with st.sidebar:
                                  min_value=int(df['Ingesta_Calcio(%)'].min()),
                                  max_value=int(df['Ingesta_Calcio(%)'].max()),
                                  value=(int(df['Ingesta_Calcio(%)'].min()), int(df['Ingesta_Calcio(%)'].max())))
-    st.markdown('---')
+    st.markdown('---') #con el markdown se inserta una linea horizontal que separa una cosa de otra
 #filtro para los Indicadores geneticos y medicos
-    st.subheader('Indicadores Genéticos y Médicos')
-    antf=st.multiselect('Antecedentes_Familiares', options=df['Antecedentes_Familiares'].unique().tolist(),default=df['Antecedentes_Familiares'].unique().tolist())
+    st.subheader('Indicadores Genéticos y Médicos') #crea otro subtitulo de la barra lateral
+    antf=st.multiselect('Antecedentes_Familiares', options=df['Antecedentes_Familiares'].unique().tolist(),default=df['Antecedentes_Familiares'].unique().tolist()) #el multiselect nos crea un cajon de seleccion multiple
+    #la funcion unique trae los datos unicos de la columna que especificamos y el tolist lo convierte en una lista  y el default establece por defecto todas las opciones seleccionadas al cargar la pagina
     mutacion=st.multiselect('Mutacion_BRCA', options=df['Mutacion_BRCA'].unique().tolist(),default=df['Mutacion_BRCA'].unique().tolist())
     infecHpylori=st.multiselect('Infeccion_H_Pylori', options=df['Infeccion_H_Pylori'].unique().tolist(),default=df['Infeccion_H_Pylori'].unique().tolist())
 
 #Se crea una copia del data frame para no modificar el original cuando se apliquen los diferentes filtros
 df_seleccion=df.copy()
-df_seleccion=df_seleccion[df_seleccion['Genero'].isin(genero)]
+df_seleccion=df_seleccion[df_seleccion['Genero'].isin(genero)] # filtramos el df_selec por la columna genero y el isin verifica que los elementos si estan contenidos en una secuencia de valores principalmente en la lista genero
 #Para evitar posibles errores en la seleccion de tipo de cancer si el  usuario no selecciona ninguna
-if tipoc:
-    df_seleccion=df_seleccion[df_seleccion['Tipo_de_Cancer'].isin(tipoc)]
+if tipoc: #se realiza una comrpobacion condicional y solo se ejecutara para el tipo de cancer (tipoc)
+    df_seleccion=df_seleccion[df_seleccion['Tipo_de_Cancer'].isin(tipoc)] #filtra y mantiene solo las filas donde el valor de la columna tipo de cancer esta en la lista tipoc
 
 #Aplicamos la copia del df para cada uno de los rangos definidos asi no modificamos el da original
 df_seleccion = df_seleccion[
     (df_seleccion['Edad'] >= edad_min) & (df_seleccion['Edad'] <= edad_max) &
+    # con edad_min compara cada valor de la columna edad con el valor de la variable edad_min  y me devuelve un True si Edad es mayor o igual que edad min y false si es menor que edad min
+    # con edad_max compara cada valor de la columna edad con el valor de la variable edad_max  y me devuelve un True si Edad es menor o igual que edad max y false si es mayor que edad max
+    #el operador  & combina ambas condiciones y devuelve true si ambas condiciones son verdades por tal razon solo se mantiene lsa filas para que el filtro es verdadero
     (df_seleccion['IMC'] >= IMC_min) & (df_seleccion['IMC'] <= IMC_max) &
     (df_seleccion['Tabaquismo(%)'] >= taba_min) & (df_seleccion['Tabaquismo(%)'] <= taba_max) &
     (df_seleccion['Consumo_Alcohol(%)'] >= alcoh_min) & (df_seleccion['Consumo_Alcohol(%)'] <= alcoh_max) &
@@ -148,7 +152,7 @@ if df_seleccion.empty: #para verificar si el df esta vacio se usa el .empty
     st.warning("No hay datos que coincidan con los filtros seleccionados.") # muestra un aviso de advertencia (.warning)
     st.stop() #lo que hace es detener la ejecucion del resto del script de python para que no se generen errores 
 
-# 1. Vista General de los Datos de la población
+#Vista General de los Datos de la población
 
 st.markdown('## _Análisis General de la Población_') ##markdown insertar texto (##=susbtitulo, _texto_=cursiva)
 
@@ -334,43 +338,47 @@ with col_micro1:
 
     st.plotly_chart(fig, use_container_width=True) #mostramos la figura en la pagina y el use es para que se ajuste automaticamente. 
 
-with col_micro2:
-    st.markdown('### Gráfico de Líneas de Tabaquismo por Género y Rango de Edad')
+with col_micro2: # para la columna 2 se a definir que es lo que lleva adentro
+    st.markdown('### Gráfico de Líneas de Tabaquismo por Género y Rango de Edad') #aca me muestra el titulo de la seccion
     
     #a continuación definimos la lista de columnas que se necesitan para la grafica
     required_cols = ['Genero', 'Edad', factor_detalle_micro]
-    df_clean = df_seleccion[required_cols].copy() # Creamos una copia para evitar SettingWithCopyWarning
-    df_clean[factor_detalle_micro] = pd.to_numeric(df_clean[factor_detalle_micro], errors='coerce')
-    df_clean = df_clean.dropna(subset=required_cols)
+    df_clean = df_seleccion[required_cols].copy() # Creamos una copia para evitar SettingWithCopyWarning el cual es un error que ocurre cuando se intenta modificar un df que actua como una vista de otro
+    df_clean[factor_detalle_micro] = pd.to_numeric(df_clean[factor_detalle_micro], errors='coerce') #convierte todos los valores de la variable directamente a formato de numero y el error cource es para evitar errores si hay valores que no puede convertir a numero
+    df_clean = df_clean.dropna(subset=required_cols) #el dropna borra los valores nulos de todas las columnas especifcadas
+    #A continuacion definimos los limites para agrupar las edades por el rango
+    # el .arange nos ayuda a crear una matriz con valores que se espacian uniformemente
+    # a partir del primer ( se crean los limites de edad en pasos de 5 años y al final se le suma 6 al valor maxim para asegurar que el ultimo valos de los datos se incluya en ese rango.
     bins = np.arange(df_clean['Edad'].min(), df_clean['Edad'].max() + 6, 5)
+    # se usa f para darle formato a los strings y genera las etiquetas osea En cada iteración del bucle, el valor actual de i y el valor de i+4 se insertan en la cadena para formar una etiqueta de rango de edad.
+    # for (por cada numero generado en la funcion range y asigna una variable i temporal ejemplo:El bucle itera a través de la secuencia, y en cada iteración, i toma el siguiente valor de la secuencia (20, luego 25, luego 30, y así sucesivamente).
+    # con la funcion range el punto de partida es la edad minima  y final es el valor maximo +1 para que incluya el ultimo valor y el 5 son cada cuanto se incrementa el valor
     labels = [f'{i}-{i+4}' for i in range(df_clean['Edad'].min(), df_clean['Edad'].max() + 1, 5)]
     df_clean['Rango_Edad'] = pd.cut(df_clean['Edad'], bins=bins, labels=labels, right=False)
 
-    # Agrupar por 'Genero' y 'Rango_Edad' y calcular el promedio
+    # Agrupa el df_clean por 'Genero' y 'Rango_Edad', el .agg realiza como una operacion de agregacion que en este caso seria calcular el promedio  de la columna factor_detalle_micro
+    # con el reset convierte el resultado en un df y resetea el index
     final_table = df_clean.groupby(['Genero', 'Rango_Edad']).agg(Promedio_Tabaquismo=(factor_detalle_micro, 'mean')).reset_index()
     
-    # Redondear el promedio para una mejor presentación en el gráfico
+    # Redondear el promedio a 2 cifras decimales para una mejor presentación en el gráfico
     final_table['Promedio_Tabaquismo'] = final_table['Promedio_Tabaquismo'].round(2)
     
-    # Crear y Mostrar el Gráfico de Líneas con Plotly Express ---
-    
-    fig_line = px.line(
-        final_table,
-        x='Rango_Edad',                        # Eje X: El rango de edad
-        y='Promedio_Tabaquismo',               # Eje Y: El valor a graficar
-        color='Genero',                        # Separa las líneas por género
-        markers=True,                          # Añade marcadores a los puntos de datos
+    # A continuacion se comienza la creacion del Gráfico de Líneas con Plotly Express
+    fig_line = px.line(#se crea un grafico de lineas usando la libreria plotly
+        final_table, #se define de donde se obtiene los datos
+        x='Rango_Edad', #se establece la columna rango de edad en el eje x 
+        y='Promedio_Tabaquismo',  # se establece la columna promedio tabaquismo en el eje y
+        color='Genero', # Separa las líneas por género y por color
+        markers=True, # Añade marcadores a los puntos de datos
         title=f'Promedio de {factor_detalle_micro} por Género y Rango de Edad',
         labels={
             'Rango_Edad': 'Rango de Edad',
             'Promedio_Tabaquismo': f'Promedio de {factor_detalle_micro} (%)'
         },
-        template='plotly_white')                # Estilo de fondo limpio
+        template='plotly_white') # aplica como un estilo del fondo de la grafica
 
-    # Ajustes opcionales para el diseño del gráfico
-    fig_line.update_layout(legend_title_text='Género',
-        yaxis_range=[0, 100])                 # Fija el rango del eje Y de 0 a 100%
-    
-    # Mostrar el gráfico en Streamlit
+    # se hacen mas ajustes para el diseño del gráfico
+    fig_line.update_layout(legend_title_text='Género', #cambia el titulo de las leyendas
+        yaxis_range=[0, 100]) # Fija el rango del eje Y de 0 a 100%
     st.plotly_chart(fig_line, use_container_width=True)
 print('Vamos bien')
