@@ -3,8 +3,7 @@ import numpy as np
 import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
-import streamlit_shadcn_ui as sc
-from local_components import card_container # ??
+
 
 #Configuracion del Dashboard 
 st.set_page_config(layout="wide", page_title='Cancer', page_icon=':bar_chart:')
