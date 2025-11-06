@@ -288,42 +288,105 @@ factor_detalle_micro = st.selectbox( #selectbox me ayuda a crear un menu despleg
     'Seleccione el factor de riesgo a analizar detalladamente su dispersión:',
     options=columnas_procentaje) #Limita al usuario que opciones puede elegir
 
-col_micro1, col_micro2 = st.columns([2,1])
+col_micro1, col_micro2 = st.columns(2)
 
 with col_micro1:
-    st.markdown(f'##### Distribución de Pacientes por genero para "{factor_detalle_micro}"')
+    st.markdown(f'### Distribución de Pacientes por género para "{factor_detalle_micro}"')
     
-    fig_hab = px.histogram(df_seleccion,
-                           x=factor_detalle_micro,
-                           color='Genero',color_discrete_map=color_genero,
-                           labels={factor_detalle_micro:f'{factor_detalle_micro}', 
-                                   'count':'Cantidad de Personas'},
-                           barmode='overlay',
-                           text_auto=True)
-    fig_hab.update_traces(marker_line_width=1, marker_line_color="black")
-    fig_hab.update_layout(legend_title_text='Género')
-    fig_hab.update_yaxes(title_text='Cantidad de Personas')
-    fig_hab.update_xaxes(dtick=10)
+    #A continuacion se realiza una agrupacion de los datos. 
+    df_agrupado = df_seleccion.groupby([factor_detalle_micro, 'Genero']).size().reset_index(name='Cantidad')#creamos un nuevo dataframe para poderlas agrupar por dos columnas la ctageoria que es dinamica y el genero
+    #el .size me ayuda a contar el numero de columnas de los grupos creados y el .reset_index me asigna un nuevo nombre a la columna creada con el size
     
-    st.plotly_chart(fig_hab, use_container_width=True)
+    fig = go.Figure() #creamos una figura vacia en la que mas adelante vamos a añadir graficos de linea columna etc.
+    
+    # a continuacion se crea un ciclo para poder generar por cada género una barras
+    for genero in df_agrupado['Genero'].unique(): #iniciamos un bucle que va a recorrer cada uno de los valores unicos de la columna genero
+        df_gen = df_agrupado[df_agrupado['Genero'] == genero] #creamos una copia del df para filtrarlas solo por las filas que coincidan con el genero
+        
+        fig.add_trace(go.Bar( #se agrega un trazo con el add_trace pero para este caso especificamente se agrega un grafico de barras con go.bar
+            x=df_gen[factor_detalle_micro],#establecemos los valores del eje x
+            y=df_gen['Cantidad'],#damos los valores para el eje y
+            name=genero, #se asigna el nombre para las barras creadas
+            marker_color=color_genero[genero], # asigna el color para las barras por cada genero
+            marker_line_width=1, marker_line_color="black", #definimos el estilo del borde de las barras ancho y color
+            text=df_gen['Cantidad'].astype(int), #mostramos la cantidad dentro de la barra y el .asytype nos asegura que el numero sea entero
+            textposition='inside')) #nos ayuda a colorcar la cantudad en el centro de la barra
 
+    #Configuramos el diseño, distribuacion y las anotaciones para el total
+    fig.update_layout( #con el .update actualiazmos la configuracion general del diseño
+        barmode='stack', legend_title_text='Género', #el stack aplia las columnas una sobre otra y el legend etsablece el titulo de las leyendas del grafico
+        yaxis_title_text='Cantidad de Personas', #asignamos el titulo al eje y 
+        xaxis_title_text=f'{factor_detalle_micro}', # asignamos el titulo al eje x
+        bargap=0.0)  # Establece el espacio entre barras a 0 
+    
+    #se actualiza la configuracion del eje x 
+    fig.update_xaxes(categoryorder='category ascending', dtick=10) #category order, nos ayuda a ordenar las etiquetas en orden ascendente y el dtick me ayuda a colocarle el nombre de los ejes cada cierto valor
+    
+    #Anotaciones para el total
+    df_totals = df_seleccion.groupby(factor_detalle_micro).size().reset_index(name='Total')#creamos una copia del df para calcular la cantidad total de pacientes y se agrupa por la variable dinamica
+    for index, row in df_totals.iterrows():# se crea un ciclo el cual itera sobre fila del df para poder procesar todos los totales de manera individual
+        fig.add_annotation( #se agregan unas anotaciones especificas con posiciones definidas por mi
+            x=row[factor_detalle_micro],y=row['Total'], #se define la posicion tanto en el eje x como en el y
+            text=f"{int(row['Total'])}", #se convierte a int el valor agregado
+            showarrow=False, #quita la flecha que señala la anotación
+            yshift=10, #desplaza el texto cierta cantidad de pixeles
+            xanchor='center',yanchor='bottom') #para x y para y va a centrar el texto de forma horizontal (x) y lo alinea en el eje y en la parte inferior
+
+    st.plotly_chart(fig, use_container_width=True) #mostramos la figura en la pagina y el use es para que se ajuste automaticamente. 
 
 with col_micro2:
-    st.markdown(f'##### Relación entre {factor_detalle_micro} y Edad (Dispersión)')
+    st.markdown('### Gráfico de Líneas de Tabaquismo por Género y Rango de Edad')
     
-    # Preparamos una copia limpia del dataframe SOLO para este gráfico para asegurar que OLS funcione
-    df_scatter_clean = df_seleccion.dropna(subset=['Edad', factor_detalle_micro, 'Genero'])
+    required_cols = ['Genero', 'Edad', factor_detalle_micro]
+    
+    # Validamos que las columnas necesarias existan
+    if not all(col in df_seleccion.columns for col in required_cols):
+        st.error(f"Error: Faltan columnas requeridas {required_cols} en el DataFrame.")
+    else:
+        # Aseguramos que la columna del factor sea numérica y limpiamos nulos
+        df_seleccion[factor_detalle_micro] = pd.to_numeric(df_seleccion[factor_detalle_micro], errors='coerce')
+        df_clean = df_seleccion.dropna(subset=required_cols)
 
-    # ... código de limpieza de datos ...
+        if df_clean.empty:
+            st.warning("No hay datos suficientes para generar el gráfico tras la limpieza de nulos.")
+        else:
+            # --- 1. Preparar la tabla de datos internamente para el gráfico ---
+            
+            # Definir los rangos de edad
+            bins = np.arange(df_clean['Edad'].min(), df_clean['Edad'].max() + 6, 5)
+            labels = [f'{i}-{i+4}' for i in range(df_clean['Edad'].min(), df_clean['Edad'].max() + 1, 5)]
+            df_clean['Rango_Edad'] = pd.cut(df_clean['Edad'], bins=bins, labels=labels, right=False)
 
-    fig_scatter = px.scatter(
-        df_scatter_clean,
-        x='Edad',  # <-- Eje X: Edad
-        y=factor_detalle_micro, # <-- Eje Y: El factor porcentual seleccionado
-        color='Genero',
-        trendline='ols',
-        title=f'Relación entre Edad y {factor_detalle_micro}',
-        opacity=0.6
-    )
-    st.plotly_chart(fig_scatter, use_container_width=True)
+            # Agrupar por 'Genero' y 'Rango_Edad' y calcular el promedio
+            final_table = df_clean.groupby(['Genero', 'Rango_Edad']).agg(
+                Promedio_Tabaquismo=(factor_detalle_micro, 'mean')
+            ).reset_index()
+            
+            # Redondear el promedio para una mejor presentación en el gráfico
+            final_table['Promedio_Tabaquismo'] = final_table['Promedio_Tabaquismo'].round(2)
+            
+            # --- 2. Crear y Mostrar el Gráfico de Líneas con Plotly Express ---
+            
+            fig_line = px.line(
+                final_table,
+                x='Rango_Edad',                        # Eje X: El rango de edad
+                y='Promedio_Tabaquismo',               # Eje Y: El valor a graficar
+                color='Genero',                        # Separa las líneas por género
+                markers=True,                          # Añade marcadores a los puntos de datos
+                title=f'Promedio de {factor_detalle_micro} por Género y Rango de Edad',
+                labels={
+                    'Rango_Edad': 'Rango de Edad',
+                    'Promedio_Tabaquismo': f'Promedio de {factor_detalle_micro} (%)'
+                },
+                template='plotly_white'                # Estilo de fondo limpio
+            )
+
+            # Ajustes opcionales para el diseño del gráfico
+            fig_line.update_layout(
+                legend_title_text='Género',
+                yaxis_range=[0, 100],                  # Fija el rango del eje Y de 0 a 100%
+            )
+            
+            # Mostrar el gráfico en Streamlit
+            st.plotly_chart(fig_line, use_container_width=True)
 print('Vamos bien')
