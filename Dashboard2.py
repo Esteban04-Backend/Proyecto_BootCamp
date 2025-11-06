@@ -337,56 +337,40 @@ with col_micro1:
 with col_micro2:
     st.markdown('### Gráfico de Líneas de Tabaquismo por Género y Rango de Edad')
     
+    #a continuación definimos la lista de columnas que se necesitan para la grafica
     required_cols = ['Genero', 'Edad', factor_detalle_micro]
+    df_clean = df_seleccion[required_cols].copy() # Creamos una copia para evitar SettingWithCopyWarning
+    df_clean[factor_detalle_micro] = pd.to_numeric(df_clean[factor_detalle_micro], errors='coerce')
+    df_clean = df_clean.dropna(subset=required_cols)
+    bins = np.arange(df_clean['Edad'].min(), df_clean['Edad'].max() + 6, 5)
+    labels = [f'{i}-{i+4}' for i in range(df_clean['Edad'].min(), df_clean['Edad'].max() + 1, 5)]
+    df_clean['Rango_Edad'] = pd.cut(df_clean['Edad'], bins=bins, labels=labels, right=False)
+
+    # Agrupar por 'Genero' y 'Rango_Edad' y calcular el promedio
+    final_table = df_clean.groupby(['Genero', 'Rango_Edad']).agg(Promedio_Tabaquismo=(factor_detalle_micro, 'mean')).reset_index()
     
-    # Validamos que las columnas necesarias existan
-    if not all(col in df_seleccion.columns for col in required_cols):
-        st.error(f"Error: Faltan columnas requeridas {required_cols} en el DataFrame.")
-    else:
-        # Aseguramos que la columna del factor sea numérica y limpiamos nulos
-        df_seleccion[factor_detalle_micro] = pd.to_numeric(df_seleccion[factor_detalle_micro], errors='coerce')
-        df_clean = df_seleccion.dropna(subset=required_cols)
+    # Redondear el promedio para una mejor presentación en el gráfico
+    final_table['Promedio_Tabaquismo'] = final_table['Promedio_Tabaquismo'].round(2)
+    
+    # Crear y Mostrar el Gráfico de Líneas con Plotly Express ---
+    
+    fig_line = px.line(
+        final_table,
+        x='Rango_Edad',                        # Eje X: El rango de edad
+        y='Promedio_Tabaquismo',               # Eje Y: El valor a graficar
+        color='Genero',                        # Separa las líneas por género
+        markers=True,                          # Añade marcadores a los puntos de datos
+        title=f'Promedio de {factor_detalle_micro} por Género y Rango de Edad',
+        labels={
+            'Rango_Edad': 'Rango de Edad',
+            'Promedio_Tabaquismo': f'Promedio de {factor_detalle_micro} (%)'
+        },
+        template='plotly_white')                # Estilo de fondo limpio
 
-        if df_clean.empty:
-            st.warning("No hay datos suficientes para generar el gráfico tras la limpieza de nulos.")
-        else:
-            # --- 1. Preparar la tabla de datos internamente para el gráfico ---
-            
-            # Definir los rangos de edad
-            bins = np.arange(df_clean['Edad'].min(), df_clean['Edad'].max() + 6, 5)
-            labels = [f'{i}-{i+4}' for i in range(df_clean['Edad'].min(), df_clean['Edad'].max() + 1, 5)]
-            df_clean['Rango_Edad'] = pd.cut(df_clean['Edad'], bins=bins, labels=labels, right=False)
-
-            # Agrupar por 'Genero' y 'Rango_Edad' y calcular el promedio
-            final_table = df_clean.groupby(['Genero', 'Rango_Edad']).agg(
-                Promedio_Tabaquismo=(factor_detalle_micro, 'mean')
-            ).reset_index()
-            
-            # Redondear el promedio para una mejor presentación en el gráfico
-            final_table['Promedio_Tabaquismo'] = final_table['Promedio_Tabaquismo'].round(2)
-            
-            # --- 2. Crear y Mostrar el Gráfico de Líneas con Plotly Express ---
-            
-            fig_line = px.line(
-                final_table,
-                x='Rango_Edad',                        # Eje X: El rango de edad
-                y='Promedio_Tabaquismo',               # Eje Y: El valor a graficar
-                color='Genero',                        # Separa las líneas por género
-                markers=True,                          # Añade marcadores a los puntos de datos
-                title=f'Promedio de {factor_detalle_micro} por Género y Rango de Edad',
-                labels={
-                    'Rango_Edad': 'Rango de Edad',
-                    'Promedio_Tabaquismo': f'Promedio de {factor_detalle_micro} (%)'
-                },
-                template='plotly_white'                # Estilo de fondo limpio
-            )
-
-            # Ajustes opcionales para el diseño del gráfico
-            fig_line.update_layout(
-                legend_title_text='Género',
-                yaxis_range=[0, 100],                  # Fija el rango del eje Y de 0 a 100%
-            )
-            
-            # Mostrar el gráfico en Streamlit
-            st.plotly_chart(fig_line, use_container_width=True)
+    # Ajustes opcionales para el diseño del gráfico
+    fig_line.update_layout(legend_title_text='Género',
+        yaxis_range=[0, 100])                 # Fija el rango del eje Y de 0 a 100%
+    
+    # Mostrar el gráfico en Streamlit
+    st.plotly_chart(fig_line, use_container_width=True)
 print('Vamos bien')
