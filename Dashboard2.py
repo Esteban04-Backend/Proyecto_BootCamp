@@ -7,7 +7,7 @@ import plotly.graph_objects as go
 
 #Configuracion del Dashboard 
 st.set_page_config(layout="wide", page_title='Cancer', page_icon=':bar_chart:')
-st.title('Relación del Cancer')
+st.title('Análisis de Datos Oncológicos y Factores Asociados')
 st.markdown('##')
 
 #Tratar los datos del .csv
@@ -377,4 +377,4 @@ with col_micro2: # para la columna 2 se a definir que es lo que lleva adentro
     fig_line.update_layout(legend_title_text='Género', #cambia el titulo de las leyendas
         yaxis_range=[0, 100]) # Fija el rango del eje Y de 0 a 100%
     st.plotly_chart(fig_line, use_container_width=True)
-print('Vamos bien')
+
