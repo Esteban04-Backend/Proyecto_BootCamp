@@ -218,7 +218,7 @@ with col_macro2:
 # 2. Vista Intermedia: Relaciones Demográficas y Genéticas
 
 st.markdown('---')
-st.markdown('### Análisis Demográfico y Factores Genéticos/Médicos')
+st.markdown('### Análisis de Factores Genéticos y Médicos')
 
 col_intermedia1, col_intermedia2 = st.columns([1,2])
 
@@ -238,11 +238,9 @@ with col_intermedia1:
     bar_geneticos.update_yaxes(title_text='Cantidad de Personas')
     st.plotly_chart(bar_geneticos, use_container_width=True)
 
-
-st.markdown('### Análisis de Coexistencia de Indicadores Genéticos y Médicos Claves')
 with col_intermedia2:
     #Agrupar por las 3 columnas para contar la frecuencia exacta de cada combinación
-    st.subheader('Análisis Detallado (Micro): Hábitos y Factores Cuantitativos')
+    st.subheader('Análisis de Coexistencia de Indicadores Genéticos y Médicos')
     st.markdown('##')
     df_conteo_combinado = df_seleccion.groupby([
         'Antecedentes_Familiares', 
@@ -294,7 +292,7 @@ factor_detalle_micro = st.selectbox( #selectbox me ayuda a crear un menu despleg
 col_micro1, col_micro2 = st.columns(2)
 
 with col_micro1:
-    st.markdown(f'### Distribución de Pacientes por género para "{factor_detalle_micro}"')
+    st.markdown(f'### Distribución de Pacientes por género para {factor_detalle_micro}')
     
     #A continuacion se realiza una agrupacion de los datos. 
     df_agrupado = df_seleccion.groupby([factor_detalle_micro, 'Genero']).size().reset_index(name='Cantidad')#creamos un nuevo dataframe para poderlas agrupar por dos columnas la ctageoria que es dinamica y el genero
@@ -338,7 +336,7 @@ with col_micro1:
     st.plotly_chart(fig, use_container_width=True) #mostramos la figura en la pagina y el use es para que se ajuste automaticamente. 
 
 with col_micro2: # para la columna 2 se a definir que es lo que lleva adentro
-    st.markdown('### Gráfico de Líneas de Tabaquismo por Género y Rango de Edad') #aca me muestra el titulo de la seccion
+    st.markdown(f'### Promedio de {factor_detalle_micro} por Género y Rango de Edad') #aca me muestra el titulo de la seccion
     
     #a continuación definimos la lista de columnas que se necesitan para la grafica
     required_cols = ['Genero', 'Edad', factor_detalle_micro]
@@ -367,12 +365,11 @@ with col_micro2: # para la columna 2 se a definir que es lo que lleva adentro
         final_table, #se define de donde se obtiene los datos
         x='Rango_Edad', #se establece la columna rango de edad en el eje x 
         y='Promedio_Tabaquismo',  # se establece la columna promedio tabaquismo en el eje y
-        color='Genero', # Separa las líneas por género y por color
+        color='Genero', color_discrete_map=color_genero, # Separa las líneas por género y por color
         markers=True, # Añade marcadores a los puntos de datos
-        title=f'Promedio de {factor_detalle_micro} por Género y Rango de Edad',
         labels={
             'Rango_Edad': 'Rango de Edad',
-            'Promedio_Tabaquismo': f'Promedio de {factor_detalle_micro} (%)'
+            'Promedio_Tabaquismo': f'Promedio de {factor_detalle_micro}'
         },
         template='plotly_white') # aplica como un estilo del fondo de la grafica
 
