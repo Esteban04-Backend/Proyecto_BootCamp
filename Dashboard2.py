@@ -282,7 +282,7 @@ st.markdown('---')
 
 #Vista Detallada de los Hábitos
 
-st.subheader("Análisis de Dispersión y Distribución Detallado")
+st.subheader("Análisis Detallado de los Factores de Riesgo")
 
 # Dropdown para seleccionar qué factor de riesgo analizar con detalle
 factor_detalle_micro = st.selectbox( #selectbox me ayuda a crear un menu desplegable en la pagina web
